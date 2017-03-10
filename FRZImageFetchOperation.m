@@ -53,8 +53,13 @@
                 _result = FRZImageFetchOperationResultInvalidURL;
             }
 
-            [[FRZImageCacheManager sharedInstance] cacheImage:requestOperation.image forURLResponse:requestOperation.response];
-            self.image = requestOperation.image;
+            UIImage *image = requestOperation.image;
+            if (image && _result == FRZImageFetchOperationResultFromNetwork && [self.delegate respondsToSelector:@selector(imageFetchOperation:transformImage:)]) {
+                image = [self.delegate imageFetchOperation:self transformImage:image];
+            }
+
+            [[FRZImageCacheManager sharedInstance] cacheImage:image forURLResponse:requestOperation.response];
+            self.image = image;
             [self finish];
         }];
         [completionOperation addDependency:requestOperation];
