@@ -39,7 +39,11 @@
     FRZImageCacheEntry *cacheEntry = [[FRZImageCacheManager sharedInstance] fetchImageForURL:_URL];
 
     if (cacheEntry == nil || cacheEntry.needsRevalidation) {
-        FRZHTTPImageRequestOperation *requestOperation = [[FRZHTTPImageRequestOperation alloc] initWithURL:_URL cacheEntry:cacheEntry];
+        FRZHTTPImageRequestOperation *requestOperation = [FRZImageFetchOperation requestOperationForURL:_URL];
+        if (requestOperation == nil) {
+            requestOperation = [[FRZHTTPImageRequestOperation alloc] initWithURL:_URL cacheEntry:cacheEntry];
+        }
+
         NSOperation *completionOperation = [NSBlockOperation blockOperationWithBlock:^{
             if (requestOperation.response.statusCode == 304) {
                 _result = FRZImageFetchOperationResultFromCacheRevalidated;
@@ -64,6 +68,23 @@
         }
         [self finish];
     }
+}
+
+/**
+ If there's already a network request ongoing for this URL, returns the current operation.
+ This allows any new requests to hook into that request instead of creating a new one.
+ */
++ (FRZHTTPImageRequestOperation *)requestOperationForURL:(NSURL *)URL
+{
+    for (NSOperation *operation in [FRZImageFetchOperation requestQueue].operations) {
+        if ([operation isKindOfClass:[FRZHTTPImageRequestOperation class]]) {
+            FRZHTTPImageRequestOperation *requestOperation = (FRZHTTPImageRequestOperation *)operation;
+            if ([requestOperation.URL isEqual:URL]) {
+                return requestOperation;
+            }
+        }
+    }
+    return nil;
 }
 
 + (NSOperationQueue *)requestQueue
