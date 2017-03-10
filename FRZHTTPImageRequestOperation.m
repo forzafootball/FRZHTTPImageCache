@@ -64,8 +64,15 @@
             _image = _cacheEntry.image;
         } else if ([validStatuses containsIndex:HTTPResponse.statusCode]) {
             if ([validStatuses containsIndex:HTTPResponse.statusCode]) {
-#warning set scale if URL contains @2x, @3x and so on? Let clients handle it?
-                self.image = [UIImage imageWithData:data scale:1.0];
+                CGFloat scale = 1.0;
+                NSString *URLString = self.URL.absoluteString;
+                if ([URLString containsString:@"@2x."]) {
+                    scale = 2.0;
+                } else if ([URLString containsString:@"@3x."]) {
+                    scale = 3.0;
+                }
+
+                self.image = [UIImage imageWithData:data scale:scale];
             }
         }
 

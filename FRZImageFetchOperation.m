@@ -42,6 +42,7 @@
         FRZHTTPImageRequestOperation *requestOperation = [FRZImageFetchOperation requestOperationForURL:_URL];
         if (requestOperation == nil) {
             requestOperation = [[FRZHTTPImageRequestOperation alloc] initWithURL:_URL cacheEntry:cacheEntry];
+            [[FRZImageFetchOperation requestQueue] addOperation:requestOperation];
         }
 
         NSOperation *completionOperation = [NSBlockOperation blockOperationWithBlock:^{
@@ -63,7 +64,7 @@
             [self finish];
         }];
         [completionOperation addDependency:requestOperation];
-        [[FRZImageFetchOperation requestQueue] addOperations:@[requestOperation, completionOperation] waitUntilFinished:NO];
+        [[FRZImageFetchOperation requestQueue] addOperation:completionOperation];
     } else {
         self.image = cacheEntry.image;
         if (self.image) {
@@ -100,6 +101,16 @@
         imageRequestQueue = [NSOperationQueue new];
     });
     return imageRequestQueue;
+}
+
++ (NSOperationQueue *)imageFetchQueue
+{
+    static NSOperationQueue *imageFetchQueue = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        imageFetchQueue = [NSOperationQueue new];
+    });
+    return imageFetchQueue;
 }
 
 @end

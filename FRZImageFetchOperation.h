@@ -38,4 +38,6 @@ typedef NS_ENUM(NSInteger, FRZImageFetchOperationResult) {
 @property (nonatomic, readonly) FRZImageFetchOperationResult result;
 @property (nonatomic, weak) id<FRZImageFetchOperationDelegate> delegate;
 
++ (NSOperationQueue *)imageFetchQueue;
+
 @end
