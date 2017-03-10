@@ -11,8 +11,6 @@
 #import "FRZImageCacheManager.h"
 
 @interface FRZImageFetchOperation() {
-    BOOL _isExecuting;
-    BOOL _isFinished;
     NSURL *_URL;
 }
 
@@ -38,26 +36,32 @@
     }
 
     // Do we have this object in the cache?
-    FRZCachedImage *cachedImage = [[FRZImageCacheManager sharedInstance] cachedImageForURL:_URL];
+    FRZImageCacheEntry *cacheEntry = [[FRZImageCacheManager sharedInstance] fetchImageForURL:_URL];
 
-    if (cachedImage == nil || cachedImage.needsRevalidation) {
-        FRZHTTPImageRequestOperation *requestOperation = [[FRZHTTPImageRequestOperation alloc] initWithURL:_URL cachedImage:cachedImage];
+    if (cacheEntry == nil || cacheEntry.needsRevalidation) {
+        FRZHTTPImageRequestOperation *requestOperation = [[FRZHTTPImageRequestOperation alloc] initWithURL:_URL cacheEntry:cacheEntry];
         NSOperation *completionOperation = [NSBlockOperation blockOperationWithBlock:^{
-            self.image = requestOperation.image;
-
-            // Store the new (or already cached, but with updated expirationDate) image in the cache
-            FRZCachedImage *cachedImage = [[FRZCachedImage alloc] initWithImage:requestOperation.image
-                                                                       response:requestOperation.response];
-            if (cachedImage) {
-                [[FRZImageCacheManager sharedInstance] cacheImage:cachedImage];
+            if (requestOperation.response.statusCode == 304) {
+                _result = FRZImageFetchOperationResultFromCacheRevalidated;
+            } else if (requestOperation.image) {
+                _result = FRZImageFetchOperationResultFromNetwork;
+            } else if (requestOperation.response) {
+                _result = FRZImageFetchOperationResultInvalidURL;
             }
 
+            [[FRZImageCacheManager sharedInstance] cacheImage:requestOperation.image forURLResponse:requestOperation.response];
+            self.image = requestOperation.image;
             [self finish];
         }];
         [completionOperation addDependency:requestOperation];
         [[FRZImageFetchOperation requestQueue] addOperations:@[requestOperation, completionOperation] waitUntilFinished:NO];
     } else {
-        self.image = cachedImage.image;
+        self.image = cacheEntry.image;
+        if (self.image) {
+            _result = FRZImageFetchOperationResultFromCache;
+        } else {
+            _result = FRZImageFetchOperationResultInvalidURL;
+        }
         [self finish];
     }
 }

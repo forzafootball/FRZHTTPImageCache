@@ -6,9 +6,9 @@
 //  Copyright © 2017 FootballAddicts. All rights reserved.
 //
 
-#import "FRZCachedImage.h"
+#import "FRZImageCacheEntry.h"
 
-@interface FRZCachedImage()
+@interface FRZImageCacheEntry()
 
 @property (nonatomic, strong) NSHTTPURLResponse *originalResponse;
 @property (nonatomic, strong) NSDate *expirationDate;
@@ -16,7 +16,7 @@
 
 @end
 
-@implementation FRZCachedImage
+@implementation FRZImageCacheEntry
 
 - (instancetype)initWithImage:(UIImage *)image response:(NSHTTPURLResponse *)response
 {
@@ -58,7 +58,7 @@
 
 - (BOOL)needsRevalidation
 {
-    return self.expirationDate == nil || [[NSDate date] timeIntervalSinceDate:self.expirationDate] > 0;
+    return self.image && (self.expirationDate == nil || [[NSDate date] timeIntervalSinceDate:self.expirationDate] > 0);
 }
 
 #pragma mark - NSSecureCoding

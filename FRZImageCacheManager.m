@@ -49,47 +49,62 @@
         self.diskCache = [[SPTPersistentCache alloc] initWithOptions:options];
         self.diskCacheQueue = dispatch_queue_create("com.footballaddicts.FRZHTTPImageCache.diskQueue", 0);
 
-        [self.diskCache scheduleGarbageCollector];
+#warning investigate how to solve garbage collection
+        //[self.diskCache scheduleGarbageCollector];
     }
     return self;
 }
 
-- (FRZCachedImage *)cachedImageForURL:(NSURL *)URL
+- (FRZImageCacheEntry *)fetchImageForURL:(NSURL *)URL
 {
-    FRZCachedImage *cachedImage = [self.memoryCache objectForKey:[self keyForURL:URL]];
+    FRZImageCacheEntry *cachedImage = [self.memoryCache objectForKey:[self keyForURL:URL]];
     if (cachedImage) {
         return cachedImage;
     }
     return [self diskCachedImageForURL:URL];
 }
 
-- (FRZCachedImage *)diskCachedImageForURL:(NSURL *)URL
+- (FRZImageCacheEntry *)diskCachedImageForURL:(NSURL *)URL
 {
     dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-    __block FRZCachedImage *cachedImage = nil;
+    __block FRZImageCacheEntry *cacheEntry = nil;
     [self.diskCache loadDataForKey:[self keyForURL:URL]
                       withCallback:^(SPTPersistentCacheResponse * _Nonnull response) {
                           if (response.error) {
-#warning check errors
                           } else {
                               if (response.result == SPTPersistentCacheResponseCodeOperationSucceeded) {
                                   NSData *data = response.record.data;
-                                  cachedImage = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+                                  cacheEntry = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+                                  NSAssert([cacheEntry.originalResponse.URL isEqual:URL], @"Cached entry didn't match requested URL. This probably means that there was a hash collision when generating keys.");
 
-                                  // Store the image in the memory cache for further requests
-                                  [self storeImageInDiskCache:cachedImage];
+                                  // Store the entry in the memory cache for further requests
+                                  [self storeEntryInMemoryCache:cacheEntry];
                               }
                           }
                           dispatch_semaphore_signal(semaphore);
                       } onQueue:self.diskCacheQueue];
     dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC));
-    return cachedImage;
+    return cacheEntry;
 }
 
-- (void)cacheImage:(FRZCachedImage *)image
+- (void)cacheImage:(UIImage *)image forURLResponse:(NSHTTPURLResponse *)response
 {
-    [self storeImageInMemoryCache:image];
-    [self storeImageInDiskCache:image];
+    FRZImageCacheEntry *cacheEntry = [[FRZImageCacheEntry alloc] initWithImage:image response:response];
+    if (cacheEntry == nil) {
+        // If no cache entry was created, it means that this response shouldn't be cached
+        return;
+    }
+
+    [self storeEntryInMemoryCache:cacheEntry];
+
+    // We only want to store an entry in the disk cache if it is valid (has an image). Otherwise,
+    // it's probably a 404 response, or a server error. We still want those in the memory cache to
+    // avoid requests to that URL until the app is restarted.
+    NSMutableIndexSet *acceptedStatuses = [NSMutableIndexSet indexSetWithIndexesInRange:NSMakeRange(200, 99)];
+    [acceptedStatuses addIndex:304];
+    if (image && [acceptedStatuses containsIndex:response.statusCode]) {
+        [self storeEntryInDiskCache:cacheEntry];
+    }
 }
 
 - (NSString *)keyForURL:(NSURL *)URL
@@ -97,14 +112,14 @@
     return @([URL hash]).stringValue;
 }
 
-- (void)storeImageInMemoryCache:(FRZCachedImage *)image
+- (void)storeEntryInMemoryCache:(FRZImageCacheEntry *)image
 {
     [self.memoryCache setObject:image
                          forKey:[self keyForURL:image.originalResponse.URL]
                            cost:[self memoryCostForImage:image.image]];
 }
 
-- (void)storeImageInDiskCache:(FRZCachedImage *)image
+- (void)storeEntryInDiskCache:(FRZImageCacheEntry *)image
 {
     NSData *encodedData = [NSKeyedArchiver archivedDataWithRootObject:image];
     [self.diskCache storeData:encodedData
@@ -116,13 +131,7 @@
 
 - (NSUInteger)memoryCostForImage:(UIImage *)image
 {
-    if (image.CGImage) {
-        return CGImageGetBytesPerRow(image.CGImage) * CGImageGetHeight(image.CGImage);
-    } else if (image.CIImage) {
-#warning remove
-        NSAssert(NO, @"Just testing if we ever get CIImages....");
-    }
-    return 0;
+    return CGImageGetBytesPerRow(image.CGImage) * CGImageGetHeight(image.CGImage);
 }
 
 @end

@@ -8,13 +8,10 @@
 
 #import "FRZHTTPImageRequestOperation.h"
 
-@interface FRZHTTPImageRequestOperation() {
-    BOOL _isExecuting;
-    BOOL _isFinished;
-}
+@interface FRZHTTPImageRequestOperation()
 
 @property (nonatomic, strong) NSURL *URL;
-@property (nonatomic, strong) FRZCachedImage *cachedImage;
+@property (nonatomic, strong) FRZImageCacheEntry *cacheEntry;
 @property (nonatomic, strong) UIImage *image;
 @property (nonatomic, strong) NSHTTPURLResponse *response;
 @property (nonatomic, strong) NSError *error;
@@ -23,7 +20,7 @@
 
 @implementation FRZHTTPImageRequestOperation
 
-- (nullable instancetype)initWithURL:(nonnull NSURL *)URL cachedImage:(nullable FRZCachedImage *)cachedImage;
+- (nullable instancetype)initWithURL:(nonnull NSURL *)URL cacheEntry:(nullable FRZImageCacheEntry *)cacheEntry;
 {
     if (!URL) {
         return nil;
@@ -31,7 +28,7 @@
 
     if (self = [super init]) {
         self.URL = URL;
-        self.cachedImage = cachedImage;
+        self.cacheEntry = cacheEntry;
     }
     return self;
 }
@@ -43,15 +40,11 @@
         return;
     }
 
-    [self willChangeValueForKey:@"isExecuting"];
-    _isExecuting = YES;
-    [self didChangeValueForKey:@"isExecuting"];
-
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:_URL];
 
-    // Add If-Modified-Since and If-None-Match headers if we already have a cached image
-    if (_cachedImage) {
-        NSDictionary *cachedHeaders = [_cachedImage.originalResponse allHeaderFields];
+    //  Add If-Modified-Since and If-None-Match headers if we already have a cached image
+    if (_cacheEntry) {
+        NSDictionary *cachedHeaders = [_cacheEntry.originalResponse allHeaderFields];
         if (cachedHeaders[@"Last-Modified"]) {
             [request addValue:cachedHeaders[@"Last-Modified"] forHTTPHeaderField:@"If-Modified-Since"];
         }
@@ -65,15 +58,17 @@
         NSHTTPURLResponse *HTTPResponse = (NSHTTPURLResponse *)response;
         self.response = HTTPResponse;
         self.error = error;
+
+        NSIndexSet *validStatuses = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(200, 99)];
         if (HTTPResponse.statusCode == 304) {
-            _image = _cachedImage.image;
-        } else if (!error) {
-            NSIndexSet *validStatuses = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(200, 99)];
+            _image = _cacheEntry.image;
+        } else if ([validStatuses containsIndex:HTTPResponse.statusCode]) {
             if ([validStatuses containsIndex:HTTPResponse.statusCode]) {
 #warning set scale if URL contains @2x, @3x and so on? Let clients handle it?
                 self.image = [UIImage imageWithData:data scale:1.0];
             }
         }
+
         [self finish];
     }];
     [networkTask resume];

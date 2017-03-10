@@ -7,13 +7,17 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "FRZCachedImage.h"
+#import "FRZImageCacheEntry.h"
+
+NS_ASSUME_NONNULL_BEGIN
 
 @interface FRZImageCacheManager : NSObject
 
 + (instancetype)sharedInstance;
 
-- (FRZCachedImage *)cachedImageForURL:(NSURL *)URL;
-- (void)cacheImage:(FRZCachedImage *)image;
+- (nullable FRZImageCacheEntry *)fetchImageForURL:(NSURL *)URL;
+- (void)cacheImage:(nullable UIImage *)image forURLResponse:(NSHTTPURLResponse *)response;
 
 @end
+
+NS_ASSUME_NONNULL_END

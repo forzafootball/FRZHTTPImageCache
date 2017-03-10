@@ -8,11 +8,11 @@
 
 #import <Foundation/Foundation.h>
 #import "FRZAsynchronousOperation.h"
-#import "FRZCachedImage.h"
+#import "FRZImageCacheEntry.h"
 
 @interface FRZHTTPImageRequestOperation : FRZAsynchronousOperation
 
-- (nullable instancetype)initWithURL:(nonnull NSURL *)URL cachedImage:(nullable FRZCachedImage *)cachedImage;
+- (nullable instancetype)initWithURL:(nonnull NSURL *)URL cacheEntry:(nullable FRZImageCacheEntry *)cacheEntry;
 
 @property (nonatomic, readonly, nullable) UIImage *image;
 @property (nonatomic, readonly, nullable) NSHTTPURLResponse *response;
