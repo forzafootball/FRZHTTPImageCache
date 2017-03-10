@@ -10,22 +10,9 @@
 #import "FRZImageFetchOperation.h"
 #import <objc/runtime.h>
 
-/**
- An NSOperation that updates an image view after its image has been fetched.
- This is used so you can cancel an update operation for an image view when
- the image view is reused, to get it ready for another image.
- */
-@interface UpdateImageOperation : NSOperation
-
-@property (nonatomic, strong) FRZImageFetchOperation *fetchOperation;
-@property (nonatomic, strong) UIImageView *imageView;
-@property (nonatomic, assign) BOOL animated;
-
-@end
-
 @interface UIImageView (FRZHTTPImageCacheInternal) <FRZImageFetchOperationDelegate>
 
-@property (nonatomic, strong) UpdateImageOperation *updateImageOperation;
+@property (nonatomic, weak) FRZImageFetchOperation *currentFetchOperation;
 @property (nonatomic, copy) UIImage *(^transformBlock)(UIImage *);
 
 @end
@@ -43,33 +30,38 @@
                    animated:(BOOL)animated
                  completion:(void (^)(FRZImageFetchOperationResult fetchResult))completion
 {
-    [self.updateImageOperation cancel];
+    [self.layer removeAllAnimations];
     self.image = placeholderImage;
 
     FRZImageFetchOperation *fetchOperation = [[FRZImageFetchOperation alloc] initWithURL:URL];
+    self.currentFetchOperation = fetchOperation;
+    NSDate *timestamp = [NSDate date];
 
     if (transformBlock) {
         self.transformBlock = transformBlock;
         fetchOperation.delegate = self;
     }
 
-    [[NSOperationQueue mainQueue] addOperation:fetchOperation];
+    __weak FRZImageFetchOperation *weakFetchOperation = fetchOperation;
+    [fetchOperation setCompletionBlock:^{
+        if (self.currentFetchOperation != weakFetchOperation) {
+            return;
+        }
 
-    UpdateImageOperation *updateOperation = [[UpdateImageOperation alloc] init];
-    updateOperation.imageView = self;
-    updateOperation.fetchOperation = fetchOperation;
-    updateOperation.animated = animated;
-    [updateOperation addDependency:fetchOperation];
-    [[NSOperationQueue mainQueue] addOperation:updateOperation];
-    self.updateImageOperation = updateOperation;
+        UIImage *image = weakFetchOperation.image;
+        self.currentFetchOperation = nil;
 
-    if (completion) {
-        NSOperation *completionOperation = [NSBlockOperation blockOperationWithBlock:^{
-            completion(fetchOperation.result);
-        }];
-        [completionOperation addDependency:updateOperation];
-        [[NSOperationQueue mainQueue] addOperation:completionOperation];
-    }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (image) {
+                self.image = image;
+                if (animated && [[NSDate date] timeIntervalSinceDate:timestamp] > 0.1) {
+                    [UIView transitionWithView:self duration:0.3 options:UIViewAnimationOptionTransitionCrossDissolve animations:nil completion:nil];
+                }
+            }
+        });
+    }];
+
+    [[FRZImageFetchOperation imageFetchQueue] addOperation:fetchOperation];
 }
 
 @end
@@ -84,14 +76,14 @@
     return image;
 }
 
-- (void)setUpdateImageOperation:(UpdateImageOperation *)updateImageOperation
+- (void)setCurrentFetchOperation:(FRZImageFetchOperation *)currentFetchOperation
 {
-    objc_setAssociatedObject(self, @selector(updateImageOperation), updateImageOperation, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self, @selector(currentFetchOperation), currentFetchOperation, OBJC_ASSOCIATION_ASSIGN);
 }
 
-- (UpdateImageOperation *)updateImageOperation
+- (FRZImageFetchOperation *)currentFetchOperation
 {
-    return objc_getAssociatedObject(self, @selector(updateImageOperation));
+    return objc_getAssociatedObject(self, @selector(currentFetchOperation));
 }
 
 - (void)setTransformBlock:(UIImage *(^)(UIImage *))transformBlock
@@ -102,27 +94,6 @@
 - (UIImage *(^)(UIImage *))transformBlock
 {
     return objc_getAssociatedObject(self, @selector(transformBlock));
-}
-
-@end
-
-@implementation UpdateImageOperation
-
-- (void)main
-{
-    if (self.isCancelled) {
-        return;
-    }
-
-    self.imageView.updateImageOperation = nil;
-    self.imageView.transformBlock = nil;
-    UIImage *image = self.fetchOperation.image;
-    if (image) {
-        self.imageView.image = image;
-        if (self.animated && self.fetchOperation.result != FRZImageFetchOperationResultFromCache) {
-            [UIView transitionWithView:self.imageView duration:0.3 options:UIViewAnimationOptionTransitionCrossDissolve animations:nil completion:nil];
-        }
-    }
 }
 
 @end

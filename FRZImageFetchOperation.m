@@ -76,6 +76,18 @@
     }
 }
 
+- (void)setMainThreadCompletionBlock:(void (^)(UIImage *, FRZImageFetchOperationResult))completionBlock
+{
+    __weak typeof(self) weakSelf = self;
+    [self setCompletionBlock:^{
+        UIImage *image = weakSelf.image;
+        FRZImageFetchOperationResult result = weakSelf.result;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            completionBlock(image, result);
+        });
+    }];
+}
+
 /**
  If there's already a network request ongoing for this URL, returns the current operation.
  This allows any new requests to hook into that request instead of creating a new one.
