@@ -63,17 +63,15 @@
         if (HTTPResponse.statusCode == 304) {
             _image = _cacheEntry.image;
         } else if ([validStatuses containsIndex:HTTPResponse.statusCode]) {
-            if ([validStatuses containsIndex:HTTPResponse.statusCode]) {
-                CGFloat scale = 1.0;
-                NSString *URLString = self.URL.absoluteString;
-                if ([URLString containsString:@"@2x."]) {
-                    scale = 2.0;
-                } else if ([URLString containsString:@"@3x."]) {
-                    scale = 3.0;
-                }
-
-                self.image = [UIImage imageWithData:data scale:scale];
+            CGFloat scale = 1.0;
+            NSString *URLString = self.URL.absoluteString;
+            if ([URLString containsString:@"@2x."]) {
+                scale = 2.0;
+            } else if ([URLString containsString:@"@3x."]) {
+                scale = 3.0;
             }
+
+            self.image = [UIImage imageWithData:data scale:scale];
         }
 
         [self finish];

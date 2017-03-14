@@ -8,6 +8,7 @@
 
 #import "FRZImageCacheManager.h"
 #import <SPTPersistentCache/SPTPersistentCache.h>
+#import "FRZHTTPImageCacheLogger.h"
 
 @interface FRZImageCacheManager()
 
@@ -59,6 +60,7 @@
 {
     FRZImageCacheEntry *cachedImage = [self.memoryCache objectForKey:[self keyForURL:URL]];
     if (cachedImage) {
+        [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Returning image from memory cache" forImageURL:cachedImage.originalResponse.URL logLevel:FRZHTTPImageCacheLogVerbose];
         return cachedImage;
     }
     return [self diskCachedImageForURL:URL];
@@ -79,6 +81,7 @@
 
                                   // Store the entry in the memory cache for further requests
                                   [self storeEntryInMemoryCache:cacheEntry];
+                                  [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Returning image from disk cache (and propagating to memory cache)" forImageURL:cacheEntry.originalResponse.URL logLevel:FRZHTTPImageCacheLogVerbose];
                               }
                           }
                           dispatch_semaphore_signal(semaphore);
@@ -114,6 +117,7 @@
 
 - (void)storeEntryInMemoryCache:(FRZImageCacheEntry *)image
 {
+    [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Storing image in memory cache..." forImageURL:image.originalResponse.URL logLevel:FRZHTTPImageCacheLogVerbose];
     [self.memoryCache setObject:image
                          forKey:[self keyForURL:image.originalResponse.URL]
                            cost:[self memoryCostForImage:image.image]];
@@ -121,6 +125,7 @@
 
 - (void)storeEntryInDiskCache:(FRZImageCacheEntry *)image
 {
+    [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Storing image in disk cache..." forImageURL:image.originalResponse.URL logLevel:FRZHTTPImageCacheLogVerbose];
     NSData *encodedData = [NSKeyedArchiver archivedDataWithRootObject:image];
     [self.diskCache storeData:encodedData
                        forKey:[self keyForURL:image.originalResponse.URL]

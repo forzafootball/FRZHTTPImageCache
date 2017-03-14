@@ -32,6 +32,13 @@
 {
     [self.layer removeAllAnimations];
     self.image = placeholderImage;
+    self.currentFetchOperation = nil;
+    if (URL == nil) {
+        if (completion) {
+            completion(FRZImageFetchOperationResultInvalidURL);
+        }
+        return;
+    }
 
     FRZImageFetchOperation *fetchOperation = [[FRZImageFetchOperation alloc] initWithURL:URL];
     self.currentFetchOperation = fetchOperation;
@@ -49,11 +56,18 @@
         }
 
         UIImage *image = weakFetchOperation.image;
+        FRZImageFetchOperationResult result = weakFetchOperation.result;
         self.currentFetchOperation = nil;
 
         dispatch_async(dispatch_get_main_queue(), ^{
             if (image) {
                 self.image = image;
+                if (completion) {
+                    completion(result);
+                }
+
+                // Only perform animation if it took more than 0.1 seconds to fetch the image. This makes it
+                // animate slow loading images regardless if they come from the cache or the network.
                 if (animated && [[NSDate date] timeIntervalSinceDate:timestamp] > 0.1) {
                     [UIView transitionWithView:self duration:0.3 options:UIViewAnimationOptionTransitionCrossDissolve animations:nil completion:nil];
                 }

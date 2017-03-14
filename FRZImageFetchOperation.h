@@ -40,6 +40,6 @@ typedef NS_ENUM(NSInteger, FRZImageFetchOperationResult) {
 
 - (void)setMainThreadCompletionBlock:(void (^)(UIImage *image, FRZImageFetchOperationResult result))completionBlock;
 
-+ (NSOperationQueue *)imageFetchQueue;
+@property (class, nonatomic, readonly) NSOperationQueue *imageFetchQueue;
 
 @end

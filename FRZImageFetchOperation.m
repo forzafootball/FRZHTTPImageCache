@@ -8,6 +8,7 @@
 
 #import "FRZImageFetchOperation.h"
 #import "FRZHTTPImageRequestOperation.h"
+#import "FRZHTTPImageCacheLogger.h"
 #import "FRZImageCacheManager.h"
 
 @interface FRZImageFetchOperation() {
@@ -35,28 +36,40 @@
         return;
     }
 
+    [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Image fetch operation starting" forImageURL:_URL logLevel:FRZHTTPImageCacheLogVerbose];
+
     // Do we have this object in the cache?
     FRZImageCacheEntry *cacheEntry = [[FRZImageCacheManager sharedInstance] fetchImageForURL:_URL];
 
     if (cacheEntry == nil || cacheEntry.needsRevalidation) {
+        [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:cacheEntry == nil ?
+         @"Image does not exist in cache, will perform network request" :
+         @"Image exists in cache but needs revalidation, will perform network request" forImageURL:_URL logLevel:FRZHTTPImageCacheLogVerbose];
+
         FRZHTTPImageRequestOperation *requestOperation = [FRZImageFetchOperation requestOperationForURL:_URL];
         if (requestOperation == nil) {
             requestOperation = [[FRZHTTPImageRequestOperation alloc] initWithURL:_URL cacheEntry:cacheEntry];
             [[FRZImageFetchOperation requestQueue] addOperation:requestOperation];
+        } else {
+            [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Another network request is ongoing for this URL, hooking into current one..." forImageURL:_URL logLevel:FRZHTTPImageCacheLogVerbose];
         }
 
         NSOperation *completionOperation = [NSBlockOperation blockOperationWithBlock:^{
             if (requestOperation.response.statusCode == 304) {
                 _result = FRZImageFetchOperationResultFromCacheRevalidated;
+                [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Cache was revalidated and still valid, reusing current image from cache" forImageURL:_URL logLevel:FRZHTTPImageCacheLogVerbose];
             } else if (requestOperation.image) {
                 _result = FRZImageFetchOperationResultFromNetwork;
+                [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Network request returned a new image" forImageURL:_URL logLevel:FRZHTTPImageCacheLogVerbose];
             } else if (requestOperation.response) {
                 _result = FRZImageFetchOperationResultInvalidURL;
+                [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:[NSString stringWithFormat:@"Network request finished with an error (%li), caching as non-existing image URL", requestOperation.response.statusCode] forImageURL:_URL logLevel:FRZHTTPImageCacheLogLevelError];
             }
 
             UIImage *image = requestOperation.image;
             if (image && _result == FRZImageFetchOperationResultFromNetwork && [self.delegate respondsToSelector:@selector(imageFetchOperation:transformImage:)]) {
                 image = [self.delegate imageFetchOperation:self transformImage:image];
+                [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Applying image transforms from delegate..." forImageURL:_URL logLevel:FRZHTTPImageCacheLogVerbose];
             }
 
             [[FRZImageCacheManager sharedInstance] cacheImage:image forURLResponse:requestOperation.response];
@@ -71,6 +84,7 @@
             _result = FRZImageFetchOperationResultFromCache;
         } else {
             _result = FRZImageFetchOperationResultInvalidURL;
+            [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"The requested URL was found in cache but marked as invalid" forImageURL:_URL logLevel:FRZHTTPImageCacheLogLevelError];
         }
         [self finish];
     }
