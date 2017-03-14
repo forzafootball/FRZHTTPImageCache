@@ -16,6 +16,8 @@ typedef NS_ENUM(NSInteger, FRZImageFetchOperationResult) {
     FRZImageFetchOperationResultInvalidURL
 };
 
+NS_ASSUME_NONNULL_BEGIN
+
 @class FRZImageFetchOperation;
 @protocol FRZImageFetchOperationDelegate <NSObject>
 
@@ -34,12 +36,14 @@ typedef NS_ENUM(NSInteger, FRZImageFetchOperationResult) {
 
 - (instancetype)initWithURL:(NSURL *)URL;
 
-@property (nonatomic, readonly) UIImage *image;
+@property (nonatomic, readonly, nullable) UIImage *image;
 @property (nonatomic, readonly) FRZImageFetchOperationResult result;
-@property (nonatomic, weak) id<FRZImageFetchOperationDelegate> delegate;
+@property (nonatomic, weak, nullable) id<FRZImageFetchOperationDelegate> delegate;
 
 - (void)setMainThreadCompletionBlock:(void (^)(UIImage *image, FRZImageFetchOperationResult result))completionBlock;
 
 @property (class, nonatomic, readonly) NSOperationQueue *imageFetchQueue;
 
 @end
+
+NS_ASSUME_NONNULL_END
