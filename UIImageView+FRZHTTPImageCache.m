@@ -42,7 +42,7 @@
     FRZImageFetchOperation *fetchOperation = [[FRZImageFetchOperation alloc] initWithURL:URL];
     self.currentFetchOperation = fetchOperation;
     fetchOperation.transformBlock = transformBlock;
-    NSDate *timestamp = [NSDate date];
+    CFTimeInterval timestamp = CACurrentMediaTime();
 
     __weak FRZImageFetchOperation *weakFetchOperation = fetchOperation;
     [fetchOperation setCompletionBlock:^{
@@ -63,7 +63,7 @@
 
                 // Only perform animation if it took more than 0.1 seconds to fetch the image. This makes it
                 // animate slow loading images regardless if they come from the cache or the network.
-                if (animated && [[NSDate date] timeIntervalSinceDate:timestamp] > 0.1) {
+                if (animated && CACurrentMediaTime() - timestamp > 0.1) {
                     [UIView transitionWithView:self duration:0.3 options:UIViewAnimationOptionTransitionCrossDissolve animations:nil completion:nil];
                 }
             }
