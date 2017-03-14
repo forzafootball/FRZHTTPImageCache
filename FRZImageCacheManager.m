@@ -34,7 +34,7 @@
 {
     if (self = [super init]) {
         self.memoryCache = [[NSCache alloc] init];
-        self.memoryCache.totalCostLimit = 1024 * 1024 * 5; // Default to 5MB in-memory cache
+        self.memoryCache.totalCostLimit = 1024 * 1024 * 8; // Default to 8MiB in-memory cache
 
         // Create the cache folder Library/Caches/com.footballaddicts.FRZHTTPImageCache
         NSString *cacheDirectory = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).firstObject;
@@ -52,8 +52,20 @@
 
 #warning investigate how to solve garbage collection
         //[self.diskCache scheduleGarbageCollector];
+
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidReceiveMemoryWarning:) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
     }
     return self;
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)applicationDidReceiveMemoryWarning:(NSNotification *)notification
+{
+    [self.memoryCache removeAllObjects];
 }
 
 - (FRZImageCacheEntry *)fetchImageForURL:(NSURL *)URL
@@ -73,6 +85,7 @@
     [self.diskCache loadDataForKey:[self keyForURL:URL]
                       withCallback:^(SPTPersistentCacheResponse * _Nonnull response) {
                           if (response.error) {
+                              [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:[NSString stringWithFormat:@"Failed to fetch image from disk cache. Error: %@", response.error] forImageURL:cacheEntry.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelError];
                           } else {
                               if (response.result == SPTPersistentCacheResponseCodeOperationSucceeded) {
                                   NSData *data = response.record.data;
