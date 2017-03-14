@@ -45,15 +45,14 @@
         options.cachePath = cacheDirectoryPath;
         options.cacheIdentifier = cacheIdentifier;
         options.defaultExpirationPeriod = 60 * 60 * 24 * 30; // If an image isn't accessed for 30 days, the garbage collector can remove it
-        options.sizeConstraintBytes = 1024 * 1024 * 30; // We store at most 30 MiB of images
+        options.sizeConstraintBytes = 1024 * 1024 * 50; // We store at most 50 MiB of images
+        options.minimumFreeDiskSpaceFraction = 0.02; // If possible, purge the cache to make sure there's always at least 2% free disk space
 
         self.diskCache = [[SPTPersistentCache alloc] initWithOptions:options];
         self.diskCacheQueue = dispatch_queue_create("com.footballaddicts.FRZHTTPImageCache.diskQueue", 0);
 
-#warning investigate how to solve garbage collection
-        //[self.diskCache scheduleGarbageCollector];
-
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidReceiveMemoryWarning:) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
     }
     return self;
 }
@@ -61,6 +60,11 @@
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)applicationWillResignActive:(NSNotification *)notification
+{
+    [self.diskCache enqueueGarbageCollector];
 }
 
 - (void)applicationDidReceiveMemoryWarning:(NSNotification *)notification
