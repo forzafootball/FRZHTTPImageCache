@@ -9,13 +9,17 @@
 #import <UIKit/UIKit.h>
 #import "FRZImageFetchOperation.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface UIImageView (FRZHTTPImageCache)
 
-- (void)frz_setImageWithURL:(NSURL *)URL placeholderImage:(UIImage *)placeholderImage animated:(BOOL)animated;
+- (void)frz_setImageWithURL:(NSURL *)URL placeholderImage:(nullable UIImage *)placeholderImage animated:(BOOL)animated;
 - (void)frz_setImageWithURL:(NSURL *)URL
-           placeholderImage:(UIImage *)placeholderImage
-                  transform:(UIImage *(^)(UIImage *originalImage))transformBlock
+           placeholderImage:(nullable UIImage *)placeholderImage
+                  transform:(nullable UIImage *(^)(UIImage *originalImage))transformBlock
                    animated:(BOOL)animated
-                 completion:(void(^)(FRZImageFetchOperationResult fetchResult))completion;
+                 completion:(nullable void(^)(FRZImageFetchOperationResult fetchResult))completion;
 
 @end
+
+NS_ASSUME_NONNULL_END

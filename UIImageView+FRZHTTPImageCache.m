@@ -10,10 +10,9 @@
 #import "FRZImageFetchOperation.h"
 #import <objc/runtime.h>
 
-@interface UIImageView (FRZHTTPImageCacheInternal) <FRZImageFetchOperationDelegate>
+@interface UIImageView (FRZHTTPImageCacheInternal)
 
 @property (nonatomic, weak) FRZImageFetchOperation *currentFetchOperation;
-@property (nonatomic, copy) UIImage *(^transformBlock)(UIImage *);
 
 @end
 
@@ -42,12 +41,8 @@
 
     FRZImageFetchOperation *fetchOperation = [[FRZImageFetchOperation alloc] initWithURL:URL];
     self.currentFetchOperation = fetchOperation;
+    fetchOperation.transformBlock = transformBlock;
     NSDate *timestamp = [NSDate date];
-
-    if (transformBlock) {
-        self.transformBlock = transformBlock;
-        fetchOperation.delegate = self;
-    }
 
     __weak FRZImageFetchOperation *weakFetchOperation = fetchOperation;
     [fetchOperation setCompletionBlock:^{
@@ -81,14 +76,6 @@
 @end
 
 @implementation UIImageView (FRZHTTPImageCacheInternal)
-
-- (UIImage *)imageFetchOperation:(FRZImageFetchOperation *)operation transformImage:(UIImage *)image
-{
-    if (self.transformBlock) {
-        return self.transformBlock(image);
-    }
-    return image;
-}
 
 - (void)setCurrentFetchOperation:(FRZImageFetchOperation *)currentFetchOperation
 {

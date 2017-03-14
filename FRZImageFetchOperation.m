@@ -67,8 +67,8 @@
             }
 
             UIImage *image = requestOperation.image;
-            if (image && _result == FRZImageFetchOperationResultFromNetwork && [self.delegate respondsToSelector:@selector(imageFetchOperation:transformImage:)]) {
-                image = [self.delegate imageFetchOperation:self transformImage:image];
+            if (image && _result == FRZImageFetchOperationResultFromNetwork && self.transformBlock) {
+                image = self.transformBlock(image);
                 [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Applying image transforms from delegate..." forImageURL:_URL logLevel:FRZHTTPImageCacheLogVerbose];
             }
 
