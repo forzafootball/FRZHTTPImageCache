@@ -38,7 +38,7 @@
 
         // Should we cache this at all?
         if ([cacheControl containsString:@"no-store"]) {
-            [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Cache entry discarded for image because headers contains 'no-store'" forImageURL:response.URL logLevel:FRZHTTPImageCacheLogLevelInfo];
+            [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Cache entry discarded for image because headers contains 'no-store'" forImageURL:response.URL logLevel:FRZHTTPImageCacheLogLevelWarning];
             return nil;
         }
 

@@ -76,7 +76,7 @@
 {
     FRZImageCacheEntry *cachedImage = [self.memoryCache objectForKey:[self keyForURL:URL]];
     if (cachedImage) {
-        [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Returning image from memory cache" forImageURL:cachedImage.originalResponse.URL logLevel:FRZHTTPImageCacheLogVerbose];
+        [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Returning image from memory cache" forImageURL:cachedImage.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
         return cachedImage;
     }
     return [self diskCachedImageForURL:URL];
@@ -86,6 +86,7 @@
 {
     dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
     __block FRZImageCacheEntry *cacheEntry = nil;
+    __block BOOL fetchBlockFinished = NO;
     [self.diskCache loadDataForKey:[self keyForURL:URL]
                       withCallback:^(SPTPersistentCacheResponse * _Nonnull response) {
                           if (response.error) {
@@ -94,16 +95,26 @@
                               if (response.result == SPTPersistentCacheResponseCodeOperationSucceeded) {
                                   NSData *data = response.record.data;
                                   cacheEntry = [NSKeyedUnarchiver unarchiveObjectWithData:data];
-                                  NSAssert([cacheEntry.originalResponse.URL isEqual:URL], @"Cached entry didn't match requested URL. This probably means that there was a hash collision when generating keys.");
+                                  NSAssert([cacheEntry.originalResponse.URL isEqual:URL], @"Cached entry didn't match requested URL. This means that there was a hash collision in [NSURL hash].");
+                                  if (![cacheEntry.originalResponse.URL isEqual:URL]) {
+                                      NSString *errorMessage = [NSString stringWithFormat:@"Cached entry didn't match requested URL. This means that there was a hash collision in [NSURL hash]. These URLs have the same hash value:\n1. %@\n2. %@", URL, cacheEntry.originalResponse.URL];
+                                      [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:errorMessage forImageURL:cacheEntry.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelError];
+                                  }
 
                                   // Store the entry in the memory cache for further requests
                                   [self storeEntryInMemoryCache:cacheEntry];
-                                  [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Returning image from disk cache (and propagating to memory cache)" forImageURL:cacheEntry.originalResponse.URL logLevel:FRZHTTPImageCacheLogVerbose];
+                                  [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Returning image from disk cache (and propagating to memory cache)" forImageURL:cacheEntry.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
                               }
                           }
+                          fetchBlockFinished = YES;
                           dispatch_semaphore_signal(semaphore);
                       } onQueue:self.diskCacheQueue];
     dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC));
+
+    if (!fetchBlockFinished) {
+        [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Aborted image fetch from disk cache because it took more than 1 second to retrieve." forImageURL:cacheEntry.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelError];
+    }
+
     return cacheEntry;
 }
 
@@ -134,7 +145,7 @@
 
 - (void)storeEntryInMemoryCache:(FRZImageCacheEntry *)image
 {
-    [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Storing image in memory cache..." forImageURL:image.originalResponse.URL logLevel:FRZHTTPImageCacheLogVerbose];
+    [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Storing image in memory cache..." forImageURL:image.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
     [self.memoryCache setObject:image
                          forKey:[self keyForURL:image.originalResponse.URL]
                            cost:[self memoryCostForImage:image.image]];
@@ -142,7 +153,7 @@
 
 - (void)storeEntryInDiskCache:(FRZImageCacheEntry *)image
 {
-    [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Storing image in disk cache..." forImageURL:image.originalResponse.URL logLevel:FRZHTTPImageCacheLogVerbose];
+    [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Storing image in disk cache..." forImageURL:image.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
     NSData *encodedData = [NSKeyedArchiver archivedDataWithRootObject:image];
     [self.diskCache storeData:encodedData
                        forKey:[self keyForURL:image.originalResponse.URL]
