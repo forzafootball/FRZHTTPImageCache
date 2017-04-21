@@ -46,6 +46,10 @@
          @"Image does not exist in cache, will perform network request" :
          @"Image exists in cache but needs revalidation, will perform network request" forImageURL:_URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
 
+        if (cacheEntry.image && [self.delegate respondsToSelector:@selector(fetchOperation:willRevalidateCachedImage:)]) {
+            [self.delegate fetchOperation:self willRevalidateCachedImage:cacheEntry.image];
+        }
+
         FRZHTTPImageRequestOperation *requestOperation = [FRZImageFetchOperation requestOperationForURL:_URL];
         if (requestOperation == nil) {
             requestOperation = [[FRZHTTPImageRequestOperation alloc] initWithURL:_URL cacheEntry:cacheEntry];
@@ -125,6 +129,7 @@
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         imageRequestQueue = [NSOperationQueue new];
+        imageRequestQueue.qualityOfService = NSQualityOfServiceUserInitiated;
     });
     return imageRequestQueue;
 }
@@ -135,6 +140,7 @@
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         imageFetchQueue = [NSOperationQueue new];
+        imageFetchQueue.qualityOfService = NSQualityOfServiceUserInteractive;
     });
     return imageFetchQueue;
 }

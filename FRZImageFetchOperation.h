@@ -18,10 +18,22 @@ typedef NS_ENUM(NSInteger, FRZImageFetchOperationResult) {
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class FRZImageFetchOperation;
+@protocol FRZImageFetchOperationDelegate <NSObject>
+
+/**
+ Called when an image exists in the cache, but will be revalidated over the network.
+ Use this to set the cached image while waiting for the updated results.
+ */
+- (void)fetchOperation:(FRZImageFetchOperation *)operation willRevalidateCachedImage:(UIImage *)cachedImage;
+
+@end
+
 @interface FRZImageFetchOperation : FRZAsynchronousOperation
 
 - (instancetype)initWithURL:(NSURL *)URL;
 
+@property (nonatomic, weak) id<FRZImageFetchOperationDelegate> delegate;
 @property (nonatomic, readonly, nullable) UIImage *image;
 @property (nonatomic, readonly) FRZImageFetchOperationResult result;
 

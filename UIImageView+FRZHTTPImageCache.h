@@ -11,7 +11,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface UIImageView (FRZHTTPImageCache)
+@interface UIImageView (FRZHTTPImageCache) <FRZImageFetchOperationDelegate>
 
 - (void)frz_setImageWithURL:(NSURL *)URL placeholderImage:(nullable UIImage *)placeholderImage animated:(BOOL)animated;
 - (void)frz_setImageWithURL:(NSURL *)URL
