@@ -112,7 +112,7 @@
     dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC));
 
     if (!fetchBlockFinished) {
-        [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Aborted image fetch from disk cache because it took more than 1 second to retrieve." forImageURL:cacheEntry.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelError];
+        [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Aborted image fetch from disk cache because it took more than 1 second to retrieve." forImageURL:URL logLevel:FRZHTTPImageCacheLogLevelError];
     }
 
     return cacheEntry;
