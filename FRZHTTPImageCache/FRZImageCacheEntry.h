@@ -10,6 +10,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@import UIKit;
+
 @interface FRZImageCacheEntry : NSObject <NSSecureCoding>
 
 @property (nonatomic, readonly, nullable) NSDate *expirationDate;

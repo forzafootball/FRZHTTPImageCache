@@ -1,0 +1,3 @@
+[submodule "Lib/SPTPersistentCache"]
+	path = SPTPersistentCache
+	url = https://github.com/FootballAddicts/SPTPersistentCache

@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import "FRZAsynchronousOperation.h"
 
+@import UIKit;
+
 typedef NS_ENUM(NSInteger, FRZImageFetchOperationResult) {
     FRZImageFetchOperationResultFromCache,
     FRZImageFetchOperationResultFromCacheRevalidated,
