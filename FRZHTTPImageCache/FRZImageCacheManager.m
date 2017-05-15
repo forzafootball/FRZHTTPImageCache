@@ -8,6 +8,7 @@
 
 #import "FRZImageCacheManager.h"
 #import <SPTPersistentCache/SPTPersistentCache.h>
+#import <CommonCrypto/CommonDigest.h>
 #import "FRZHTTPImageCacheLogger.h"
 
 @interface FRZImageCacheManager()
@@ -95,11 +96,6 @@
                               if (response.result == SPTPersistentCacheResponseCodeOperationSucceeded) {
                                   NSData *data = response.record.data;
                                   cacheEntry = [NSKeyedUnarchiver unarchiveObjectWithData:data];
-                                  NSAssert([cacheEntry.originalResponse.URL isEqual:URL], @"Cached entry didn't match requested URL. This means that there was a hash collision in [NSURL hash].");
-                                  if (![cacheEntry.originalResponse.URL isEqual:URL]) {
-                                      NSString *errorMessage = [NSString stringWithFormat:@"Cached entry didn't match requested URL. This means that there was a hash collision in [NSURL hash]. These URLs have the same hash value:\n1. %@\n2. %@", URL, cacheEntry.originalResponse.URL];
-                                      [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:errorMessage forImageURL:cacheEntry.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelError];
-                                  }
 
                                   // Store the entry in the memory cache for further requests
                                   [self storeEntryInMemoryCache:cacheEntry];
@@ -140,7 +136,15 @@
 
 - (NSString *)keyForURL:(NSURL *)URL
 {
-    return @([URL hash]).stringValue;
+    // MD5 hash. Using the built-in hash-function of NSURL/NSString is very collision prone
+    const char *utf8String =  [URL.absoluteString UTF8String];
+    unsigned char md5Buffer[CC_MD5_DIGEST_LENGTH];
+    CC_MD5(utf8String, (CC_LONG)strlen(utf8String), md5Buffer);
+    NSMutableString *hexString = [NSMutableString stringWithCapacity:CC_MD5_DIGEST_LENGTH * 2];
+    for (int i = 0; i < CC_MD5_DIGEST_LENGTH; i++) {
+        [hexString appendFormat:@"%02x", md5Buffer[i]];
+    }
+    return hexString;
 }
 
 - (void)storeEntryInMemoryCache:(FRZImageCacheEntry *)image
