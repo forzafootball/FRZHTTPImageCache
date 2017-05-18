@@ -76,7 +76,12 @@
                 [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Applying image transforms from delegate..." forImageURL:_URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
             }
 
-            [[FRZImageCacheManager sharedInstance] cacheImage:image forURLResponse:requestOperation.response];
+            if (requestOperation.response) {
+                [[FRZImageCacheManager sharedInstance] cacheImage:image forURLResponse:requestOperation.response];
+            } else {
+                [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Network request failed for image request. Will not store anything to cache." forImageURL:_URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
+            }
+
             self.image = image;
             [self finish];
         }];

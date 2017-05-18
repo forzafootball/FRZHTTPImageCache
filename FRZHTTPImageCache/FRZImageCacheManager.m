@@ -122,14 +122,22 @@
         return;
     }
 
-    [self storeEntryInMemoryCache:cacheEntry];
+    // If response is 2xx or 304, store response in both memory and disk cache
+    if (image && (response.statusCode == 304 || NSLocationInRange(response.statusCode, NSMakeRange(200, 99)))) {
+        [self storeEntryInMemoryCache:cacheEntry];
+        [self storeEntryInDiskCache:cacheEntry];
+    }
 
-    // We only want to store an entry in the disk cache if it is valid (has an image). Otherwise,
-    // it's probably a 404 response, or a server error. We still want those in the memory cache to
-    // avoid requests to that URL until the app is restarted.
-    NSMutableIndexSet *acceptedStatuses = [NSMutableIndexSet indexSetWithIndexesInRange:NSMakeRange(200, 99)];
-    [acceptedStatuses addIndex:304];
-    if (image && [acceptedStatuses containsIndex:response.statusCode]) {
+    // If 4xx, remove the image from disk cache but keep in memory cache to avoid
+    // multiple requests to empty endpoint this session
+    else if (NSLocationInRange(response.statusCode, NSMakeRange(400, 99))) {
+        [self storeEntryInMemoryCache:cacheEntry];
+        [self removeEntryInDiskCache:cacheEntry];
+    }
+
+    // If 5xx, there was a server error. Store it in memory cache to avoid
+    // excessive requests, but keep the disk cache for if/when the server comes back alive
+    else if (NSLocationInRange(response.statusCode, NSMakeRange(500, 99))) {
         [self storeEntryInDiskCache:cacheEntry];
     }
 }
@@ -164,6 +172,14 @@
                        locked:NO
                  withCallback:nil
                       onQueue:nil];
+}
+
+- (void)removeEntryInDiskCache:(FRZImageCacheEntry *)image
+{
+    [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Removing image from disk cache..." forImageURL:image.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
+    [self.diskCache removeDataForKeys:@[[self keyForURL:image.originalResponse.URL]]
+                             callback:nil
+                              onQueue:nil];
 }
 
 - (NSUInteger)memoryCostForImage:(UIImage *)image
