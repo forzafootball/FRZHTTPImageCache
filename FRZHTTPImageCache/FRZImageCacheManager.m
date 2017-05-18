@@ -11,6 +11,8 @@
 #import <CommonCrypto/CommonDigest.h>
 #import "FRZHTTPImageCacheLogger.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface FRZImageCacheManager()
 
 @property (nonatomic, strong) NSCache *memoryCache;
@@ -73,7 +75,7 @@
     [self.memoryCache removeAllObjects];
 }
 
-- (FRZImageCacheEntry *)fetchImageForURL:(NSURL *)URL
+- (nullable FRZImageCacheEntry *)fetchImageForURL:(NSURL *)URL
 {
     FRZImageCacheEntry *cachedImage = [self.memoryCache objectForKey:[self keyForURL:URL]];
     if (cachedImage) {
@@ -114,7 +116,7 @@
     return cacheEntry;
 }
 
-- (void)cacheImage:(UIImage *)image forURLResponse:(NSHTTPURLResponse *)response
+- (void)cacheImage:(nullable UIImage *)image forURLResponse:(NSHTTPURLResponse *)response
 {
     FRZImageCacheEntry *cacheEntry = [[FRZImageCacheEntry alloc] initWithImage:image response:response];
     if (cacheEntry == nil) {
@@ -145,7 +147,7 @@
 - (NSString *)keyForURL:(NSURL *)URL
 {
     // MD5 hash. Using the built-in hash-function of NSURL/NSString is very collision prone
-    const char *utf8String =  [URL.absoluteString UTF8String];
+    const char *utf8String = [URL.absoluteString UTF8String];
     unsigned char md5Buffer[CC_MD5_DIGEST_LENGTH];
     CC_MD5(utf8String, (CC_LONG)strlen(utf8String), md5Buffer);
     NSMutableString *hexString = [NSMutableString stringWithCapacity:CC_MD5_DIGEST_LENGTH * 2];
@@ -188,3 +190,5 @@
 }
 
 @end
+
+NS_ASSUME_NONNULL_END

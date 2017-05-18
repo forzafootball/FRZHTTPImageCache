@@ -36,6 +36,12 @@
         return;
     }
 
+    if (!_URL || _URL.absoluteString.length == 0) {
+        _result = FRZImageFetchOperationResultInvalidURL;
+        [self finish];
+        return;
+    }
+
     [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Image fetch operation starting" forImageURL:_URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
 
     // Do we have this object in the cache?
