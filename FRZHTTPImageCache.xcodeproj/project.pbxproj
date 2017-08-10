@@ -40,6 +40,13 @@
 			remoteGlobalIDString = 0510FF1E1BA2FF7A00ED0766;
 			remoteInfo = SPTPersistentCacheTests;
 		};
+		5D9276621F3C8D42005AEE4C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5D279DA41EC1E79000F26800 /* SPTPersistentCache.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0510FF121BA2FF7A00ED0766;
+			remoteInfo = SPTPersistentCache;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -173,6 +180,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				5D9276631F3C8D42005AEE4C /* PBXTargetDependency */,
 			);
 			name = FRZHTTPImageCache;
 			productName = FRZHTTPImageCache;
@@ -261,6 +269,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5D9276631F3C8D42005AEE4C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = SPTPersistentCache;
+			targetProxy = 5D9276621F3C8D42005AEE4C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		5D48D6251EC075C40008F282 /* Debug */ = {
