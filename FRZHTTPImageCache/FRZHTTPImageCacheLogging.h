@@ -1,5 +1,5 @@
 //
-//  FRZHTTPImageCacheLogger.h
+//  FRZHTTPImageCacheLogging.h
 //  Forza Football
 //
 //  Created by Joel Ekström on 2017-03-13.
@@ -22,11 +22,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface FRZHTTPImageCacheLogger : NSObject <FRZHTTPImageCacheLogging>
+@interface FRZHTTPImageCacheBasicLogger : NSObject <FRZHTTPImageCacheLogging>
 
-@property (nullable, class, nonatomic, strong) id<FRZHTTPImageCacheLogging> sharedLogger;
-
-@property (nonatomic, copy, nullable) void (^loggingBlock)(NSString *message, NSURL *URL, FRZHTTPImageCacheLogLevel logLevel);
++ (instancetype)loggerWithLoggingBlock:(nonnull void(^)(NSString *message, NSURL *URL, FRZHTTPImageCacheLogLevel logLevel))loggingBlock;
 
 @end
 

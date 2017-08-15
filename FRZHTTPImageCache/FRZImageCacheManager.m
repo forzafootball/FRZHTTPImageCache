@@ -9,7 +9,7 @@
 #import "FRZImageCacheManager.h"
 #import <SPTPersistentCache/SPTPersistentCache.h>
 #import <CommonCrypto/CommonDigest.h>
-#import "FRZHTTPImageCacheLogger.h"
+#import "FRZHTTPImageCache.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -23,36 +23,44 @@ NS_ASSUME_NONNULL_BEGIN
 
 @implementation FRZImageCacheManager
 
+static FRZImageCacheManager *sharedInstance = nil;
+
 + (instancetype)sharedInstance
 {
-    static FRZImageCacheManager *sharedInstance;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        sharedInstance = [[FRZImageCacheManager alloc] init];
+        if (!sharedInstance) {
+            sharedInstance = [[FRZImageCacheManager alloc] initWithOptions:[FRZHTTPImageCacheOptions defaultOptions]];
+        }
     });
     return sharedInstance;
 }
 
-- (instancetype)init
++ (void)setSharedInstance:(FRZImageCacheManager *)manager
+{
+    sharedInstance = manager;
+}
+
+- (instancetype)initWithOptions:(FRZHTTPImageCacheOptions *)options
 {
     if (self = [super init]) {
         self.memoryCache = [[NSCache alloc] init];
-        self.memoryCache.totalCostLimit = 1024 * 1024 * 8; // Default to 8MiB in-memory cache
+        self.memoryCache.totalCostLimit = options.memoryCacheByteSizeLimit;
 
-        // Create the cache folder Library/Caches/com.footballaddicts.FRZHTTPImageCache
+        // Create the cache folder Library/Caches/cacheIdentifier
         NSString *cacheDirectory = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).firstObject;
-        NSString *cacheIdentifier = @"com.footballaddicts.FRZHTTPImageCache";
-        NSString *cacheDirectoryPath = [cacheDirectory stringByAppendingPathComponent:cacheIdentifier];
+        NSString *cacheDirectoryPath = [cacheDirectory stringByAppendingPathComponent:options.cacheIdentifier];
 
-        SPTPersistentCacheOptions *options = [[SPTPersistentCacheOptions alloc] init];
-        options.cachePath = cacheDirectoryPath;
-        options.cacheIdentifier = cacheIdentifier;
-        options.defaultExpirationPeriod = 60 * 60 * 24 * 30; // If an image isn't accessed for 30 days, the garbage collector can remove it
-        options.sizeConstraintBytes = 1024 * 1024 * 50; // We store at most 50 MiB of images
-        options.minimumFreeDiskSpaceFraction = 0.02; // If possible, purge the cache to make sure there's always at least 2% free disk space
+        SPTPersistentCacheOptions *persistentCacheOptions = [[SPTPersistentCacheOptions alloc] init];
+        persistentCacheOptions.cachePath = cacheDirectoryPath;
+        persistentCacheOptions.cacheIdentifier = options.cacheIdentifier;
+        persistentCacheOptions.defaultExpirationPeriod = options.defaultExpirationPeriod;
+        persistentCacheOptions.sizeConstraintBytes = options.diskCacheByteSizeLimit;
+        persistentCacheOptions.minimumFreeDiskSpaceFraction = options.minimumFreeDiskSpaceFraction;
 
-        self.diskCache = [[SPTPersistentCache alloc] initWithOptions:options];
-        self.diskCacheQueue = dispatch_queue_create("com.footballaddicts.FRZHTTPImageCache.diskQueue", 0);
+        self.diskCache = [[SPTPersistentCache alloc] initWithOptions:persistentCacheOptions];
+        NSString *queueName = [NSString stringWithFormat:@"%@.diskQueue", options.cacheIdentifier];
+        self.diskCacheQueue = dispatch_queue_create([queueName cStringUsingEncoding:NSUTF8StringEncoding], 0);
 
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidReceiveMemoryWarning:) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
@@ -79,7 +87,7 @@ NS_ASSUME_NONNULL_BEGIN
 {
     FRZImageCacheEntry *cachedImage = [self.memoryCache objectForKey:[self keyForURL:URL]];
     if (cachedImage) {
-        [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Returning image from memory cache" forImageURL:cachedImage.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
+        [FRZHTTPImageCache.logger frz_logMessage:@"Returning image from memory cache" forImageURL:cachedImage.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
         return cachedImage;
     }
     return [self diskCachedImageForURL:URL];
@@ -93,7 +101,7 @@ NS_ASSUME_NONNULL_BEGIN
     [self.diskCache loadDataForKey:[self keyForURL:URL]
                       withCallback:^(SPTPersistentCacheResponse * _Nonnull response) {
                           if (response.error) {
-                              [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:[NSString stringWithFormat:@"Failed to fetch image from disk cache. Error: %@", response.error] forImageURL:cacheEntry.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelError];
+                              [FRZHTTPImageCache.logger frz_logMessage:[NSString stringWithFormat:@"Failed to fetch image from disk cache. Error: %@", response.error] forImageURL:cacheEntry.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelError];
                           } else {
                               if (response.result == SPTPersistentCacheResponseCodeOperationSucceeded) {
                                   NSData *data = response.record.data;
@@ -101,7 +109,7 @@ NS_ASSUME_NONNULL_BEGIN
 
                                   // Store the entry in the memory cache for further requests
                                   [self storeEntryInMemoryCache:cacheEntry];
-                                  [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Returning image from disk cache (and propagating to memory cache)" forImageURL:cacheEntry.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
+                                  [FRZHTTPImageCache.logger frz_logMessage:@"Returning image from disk cache (and propagating to memory cache)" forImageURL:cacheEntry.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
                               }
                           }
                           fetchBlockFinished = YES;
@@ -110,7 +118,7 @@ NS_ASSUME_NONNULL_BEGIN
     dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC));
 
     if (!fetchBlockFinished) {
-        [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Aborted image fetch from disk cache because it took more than 1 second to retrieve." forImageURL:URL logLevel:FRZHTTPImageCacheLogLevelError];
+        [FRZHTTPImageCache.logger frz_logMessage:@"Aborted image fetch from disk cache because it took more than 1 second to retrieve." forImageURL:URL logLevel:FRZHTTPImageCacheLogLevelError];
     }
 
     return cacheEntry;
@@ -159,7 +167,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)storeEntryInMemoryCache:(FRZImageCacheEntry *)image
 {
-    [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Storing image in memory cache..." forImageURL:image.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
+    [FRZHTTPImageCache.logger frz_logMessage:@"Storing image in memory cache..." forImageURL:image.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
     [self.memoryCache setObject:image
                          forKey:[self keyForURL:image.originalResponse.URL]
                            cost:[self memoryCostForImage:image.image]];
@@ -167,7 +175,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)storeEntryInDiskCache:(FRZImageCacheEntry *)image
 {
-    [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Storing image in disk cache..." forImageURL:image.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
+    [FRZHTTPImageCache.logger frz_logMessage:@"Storing image in disk cache..." forImageURL:image.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
     NSData *encodedData = [NSKeyedArchiver archivedDataWithRootObject:image];
     [self.diskCache storeData:encodedData
                        forKey:[self keyForURL:image.originalResponse.URL]
@@ -178,7 +186,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)removeEntryInDiskCache:(FRZImageCacheEntry *)image
 {
-    [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Removing image from disk cache..." forImageURL:image.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
+    [FRZHTTPImageCache.logger frz_logMessage:@"Removing image from disk cache..." forImageURL:image.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
     [self.diskCache removeDataForKeys:@[[self keyForURL:image.originalResponse.URL]]
                              callback:nil
                               onQueue:nil];

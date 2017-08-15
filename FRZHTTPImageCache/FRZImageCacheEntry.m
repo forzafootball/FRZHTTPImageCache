@@ -7,7 +7,7 @@
 //
 
 #import "FRZImageCacheEntry.h"
-#import "FRZHTTPImageCacheLogger.h"
+#import "FRZHTTPImageCache.h"
 
 @interface FRZImageCacheEntry()
 
@@ -38,7 +38,7 @@
 
         // Should we cache this at all?
         if ([cacheControl containsString:@"no-store"]) {
-            [FRZHTTPImageCacheLogger.sharedLogger frz_logMessage:@"Cache entry discarded for image because headers contains 'no-store'" forImageURL:response.URL logLevel:FRZHTTPImageCacheLogLevelWarning];
+            [FRZHTTPImageCache.logger frz_logMessage:@"Cache entry discarded for image because headers contains 'no-store'" forImageURL:response.URL logLevel:FRZHTTPImageCacheLogLevelWarning];
             return nil;
         }
 

@@ -9,10 +9,13 @@
 /* Begin PBXBuildFile section */
 		5D279D9E1EC1CB7700F26800 /* FRZHTTPImageCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 5D48D6221EC075C40008F282 /* FRZHTTPImageCache.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5D279DAD1EC1E7BD00F26800 /* libSPTPersistentCache.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D279DAA1EC1E79000F26800 /* libSPTPersistentCache.a */; };
+		5D5162B21F42FA4D000670DC /* FRZHTTPImageCacheOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 5D5162B01F42FA4D000670DC /* FRZHTTPImageCacheOptions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		5D5162B31F42FA4D000670DC /* FRZHTTPImageCacheOptions.m in Sources */ = {isa = PBXBuildFile; fileRef = 5D5162B11F42FA4D000670DC /* FRZHTTPImageCacheOptions.m */; };
+		5D5162B71F42FABD000670DC /* FRZHTTPImageCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 5D5162B61F42FABD000670DC /* FRZHTTPImageCache.m */; };
 		5DBE72901EC0763F00320F25 /* FRZAsynchronousOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = 5DBE72821EC0763F00320F25 /* FRZAsynchronousOperation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5DBE72911EC0763F00320F25 /* FRZAsynchronousOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 5DBE72831EC0763F00320F25 /* FRZAsynchronousOperation.m */; };
-		5DBE72921EC0763F00320F25 /* FRZHTTPImageCacheLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = 5DBE72841EC0763F00320F25 /* FRZHTTPImageCacheLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		5DBE72931EC0763F00320F25 /* FRZHTTPImageCacheLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 5DBE72851EC0763F00320F25 /* FRZHTTPImageCacheLogger.m */; };
+		5DBE72921EC0763F00320F25 /* FRZHTTPImageCacheLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 5DBE72841EC0763F00320F25 /* FRZHTTPImageCacheLogging.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		5DBE72931EC0763F00320F25 /* FRZHTTPImageCacheLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 5DBE72851EC0763F00320F25 /* FRZHTTPImageCacheLogging.m */; };
 		5DBE72941EC0763F00320F25 /* FRZHTTPImageRequestOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = 5DBE72861EC0763F00320F25 /* FRZHTTPImageRequestOperation.h */; };
 		5DBE72951EC0763F00320F25 /* FRZHTTPImageRequestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 5DBE72871EC0763F00320F25 /* FRZHTTPImageRequestOperation.m */; };
 		5DBE72961EC0763F00320F25 /* FRZImageCacheEntry.h in Headers */ = {isa = PBXBuildFile; fileRef = 5DBE72881EC0763F00320F25 /* FRZImageCacheEntry.h */; };
@@ -54,10 +57,13 @@
 		5D48D61F1EC075C40008F282 /* FRZHTTPImageCache.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FRZHTTPImageCache.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D48D6221EC075C40008F282 /* FRZHTTPImageCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FRZHTTPImageCache.h; sourceTree = "<group>"; };
 		5D48D6231EC075C40008F282 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5D5162B01F42FA4D000670DC /* FRZHTTPImageCacheOptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FRZHTTPImageCacheOptions.h; sourceTree = "<group>"; };
+		5D5162B11F42FA4D000670DC /* FRZHTTPImageCacheOptions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FRZHTTPImageCacheOptions.m; sourceTree = "<group>"; };
+		5D5162B61F42FABD000670DC /* FRZHTTPImageCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FRZHTTPImageCache.m; sourceTree = "<group>"; };
 		5DBE72821EC0763F00320F25 /* FRZAsynchronousOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FRZAsynchronousOperation.h; sourceTree = "<group>"; };
 		5DBE72831EC0763F00320F25 /* FRZAsynchronousOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FRZAsynchronousOperation.m; sourceTree = "<group>"; };
-		5DBE72841EC0763F00320F25 /* FRZHTTPImageCacheLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FRZHTTPImageCacheLogger.h; sourceTree = "<group>"; };
-		5DBE72851EC0763F00320F25 /* FRZHTTPImageCacheLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FRZHTTPImageCacheLogger.m; sourceTree = "<group>"; };
+		5DBE72841EC0763F00320F25 /* FRZHTTPImageCacheLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FRZHTTPImageCacheLogging.h; sourceTree = "<group>"; };
+		5DBE72851EC0763F00320F25 /* FRZHTTPImageCacheLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FRZHTTPImageCacheLogging.m; sourceTree = "<group>"; };
 		5DBE72861EC0763F00320F25 /* FRZHTTPImageRequestOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FRZHTTPImageRequestOperation.h; sourceTree = "<group>"; };
 		5DBE72871EC0763F00320F25 /* FRZHTTPImageRequestOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FRZHTTPImageRequestOperation.m; sourceTree = "<group>"; };
 		5DBE72881EC0763F00320F25 /* FRZImageCacheEntry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FRZImageCacheEntry.h; sourceTree = "<group>"; };
@@ -88,7 +94,8 @@
 				5D48D6221EC075C40008F282 /* FRZHTTPImageCache.h */,
 				5DBE728C1EC0763F00320F25 /* FRZImageFetchOperation.h */,
 				5DBE728E1EC0763F00320F25 /* UIImageView+FRZHTTPImageCache.h */,
-				5DBE72841EC0763F00320F25 /* FRZHTTPImageCacheLogger.h */,
+				5DBE72841EC0763F00320F25 /* FRZHTTPImageCacheLogging.h */,
+				5D5162B01F42FA4D000670DC /* FRZHTTPImageCacheOptions.h */,
 			);
 			name = Public;
 			sourceTree = "<group>";
@@ -96,9 +103,11 @@
 		5D279DA31EC1E5A100F26800 /* Library */ = {
 			isa = PBXGroup;
 			children = (
+				5D5162B61F42FABD000670DC /* FRZHTTPImageCache.m */,
+				5D5162B11F42FA4D000670DC /* FRZHTTPImageCacheOptions.m */,
 				5DBE72821EC0763F00320F25 /* FRZAsynchronousOperation.h */,
 				5DBE72831EC0763F00320F25 /* FRZAsynchronousOperation.m */,
-				5DBE72851EC0763F00320F25 /* FRZHTTPImageCacheLogger.m */,
+				5DBE72851EC0763F00320F25 /* FRZHTTPImageCacheLogging.m */,
 				5DBE72861EC0763F00320F25 /* FRZHTTPImageRequestOperation.h */,
 				5DBE72871EC0763F00320F25 /* FRZHTTPImageRequestOperation.m */,
 				5DBE72881EC0763F00320F25 /* FRZImageCacheEntry.h */,
@@ -154,10 +163,11 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5D5162B21F42FA4D000670DC /* FRZHTTPImageCacheOptions.h in Headers */,
 				5DBE729A1EC0763F00320F25 /* FRZImageFetchOperation.h in Headers */,
 				5DBE72981EC0763F00320F25 /* FRZImageCacheManager.h in Headers */,
 				5D279D9E1EC1CB7700F26800 /* FRZHTTPImageCache.h in Headers */,
-				5DBE72921EC0763F00320F25 /* FRZHTTPImageCacheLogger.h in Headers */,
+				5DBE72921EC0763F00320F25 /* FRZHTTPImageCacheLogging.h in Headers */,
 				5DBE72961EC0763F00320F25 /* FRZImageCacheEntry.h in Headers */,
 				5DBE729C1EC0763F00320F25 /* UIImageView+FRZHTTPImageCache.h in Headers */,
 				5DBE72901EC0763F00320F25 /* FRZAsynchronousOperation.h in Headers */,
@@ -260,9 +270,11 @@
 			files = (
 				5DBE72991EC0763F00320F25 /* FRZImageCacheManager.m in Sources */,
 				5DBE729B1EC0763F00320F25 /* FRZImageFetchOperation.m in Sources */,
+				5D5162B31F42FA4D000670DC /* FRZHTTPImageCacheOptions.m in Sources */,
+				5D5162B71F42FABD000670DC /* FRZHTTPImageCache.m in Sources */,
 				5DBE72911EC0763F00320F25 /* FRZAsynchronousOperation.m in Sources */,
 				5DBE729D1EC0763F00320F25 /* UIImageView+FRZHTTPImageCache.m in Sources */,
-				5DBE72931EC0763F00320F25 /* FRZHTTPImageCacheLogger.m in Sources */,
+				5DBE72931EC0763F00320F25 /* FRZHTTPImageCacheLogging.m in Sources */,
 				5DBE72971EC0763F00320F25 /* FRZImageCacheEntry.m in Sources */,
 				5DBE72951EC0763F00320F25 /* FRZHTTPImageRequestOperation.m in Sources */,
 			);

@@ -12,5 +12,14 @@ FOUNDATION_EXPORT double FRZHTTPImageCacheVersionNumber;
 FOUNDATION_EXPORT const unsigned char FRZHTTPImageCacheVersionString[];
 
 #import <FRZHTTPImageCache/FRZImageFetchOperation.h>
-#import <FRZHTTPImageCache/FRZHTTPImageCacheLogger.h>
+#import <FRZHTTPImageCache/FRZHTTPImageCacheLogging.h>
 #import <FRZHTTPImageCache/UIImageView+FRZHTTPImageCache.h>
+#import <FRZHTTPImageCache/FRZHTTPImageCacheOptions.h>
+
+@interface FRZHTTPImageCache : NSObject
+
++ (void)initializeWithOptions:(nonnull FRZHTTPImageCacheOptions *)options;
+
+@property (nullable, class, nonatomic, strong) id<FRZHTTPImageCacheLogging> logger;
+
+@end
