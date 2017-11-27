@@ -137,14 +137,4 @@
     return self.weakOperationWrapper.currentFetchOperation;
 }
 
-- (void)setTransformBlock:(UIImage *(^)(UIImage *))transformBlock
-{
-    objc_setAssociatedObject(self, @selector(transformBlock), transformBlock, OBJC_ASSOCIATION_COPY_NONATOMIC);
-}
-
-- (UIImage *(^)(UIImage *))transformBlock
-{
-    return objc_getAssociatedObject(self, @selector(transformBlock));
-}
-
 @end
