@@ -90,16 +90,51 @@
 
 @end
 
+
+@interface WeakOperationWrapper : NSObject
+@property (nonatomic, weak) FRZImageFetchOperation *currentFetchOperation;
+@end
+
+@implementation WeakOperationWrapper
+@end
+
+@interface UIImageView (WeakZeroing)
+
+// objc associated object does support zeroing weak references, so we use a wrapper, more info https://stackoverflow.com/a/27035233
+@property (nonatomic, strong) WeakOperationWrapper *weakOperationWrapper;
+
+@end
+
+@implementation UIImageView (WeakZeroing)
+
+- (void)setWeakOperationWrapper:(WeakOperationWrapper *)weakOperationWrapper
+{
+    objc_setAssociatedObject(self, @selector(weakOperationWrapper), weakOperationWrapper, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (WeakOperationWrapper *)weakOperationWrapper
+{
+    WeakOperationWrapper *weakOperationWrapper = objc_getAssociatedObject(self, @selector(weakOperationWrapper));
+    if (!weakOperationWrapper) {
+        weakOperationWrapper = [[WeakOperationWrapper alloc] init];
+        self.weakOperationWrapper = weakOperationWrapper;
+    }
+    return weakOperationWrapper;
+}
+
+@end
+
+
 @implementation UIImageView (FRZHTTPImageCacheInternal)
 
 - (void)setCurrentFetchOperation:(FRZImageFetchOperation *)currentFetchOperation
 {
-    objc_setAssociatedObject(self, @selector(currentFetchOperation), currentFetchOperation, OBJC_ASSOCIATION_ASSIGN);
+    self.weakOperationWrapper.currentFetchOperation = currentFetchOperation;
 }
 
 - (FRZImageFetchOperation *)currentFetchOperation
 {
-    return objc_getAssociatedObject(self, @selector(currentFetchOperation));
+    return self.weakOperationWrapper.currentFetchOperation;
 }
 
 - (void)setTransformBlock:(UIImage *(^)(UIImage *))transformBlock
