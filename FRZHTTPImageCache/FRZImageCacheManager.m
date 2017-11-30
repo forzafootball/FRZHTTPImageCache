@@ -107,9 +107,15 @@ static FRZImageCacheManager *sharedInstance = nil;
                                   NSData *data = response.record.data;
                                   cacheEntry = [NSKeyedUnarchiver unarchiveObjectWithData:data];
 
-                                  // Store the entry in the memory cache for further requests
-                                  [self storeEntryInMemoryCache:cacheEntry];
-                                  [FRZHTTPImageCache.logger frz_logMessage:@"Returning image from disk cache (and propagating to memory cache)" forImageURL:cacheEntry.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
+                                  // Bufix, we accidentally stored 5xx responses in disk cache, so remove those if they come up.
+                                  if (NSLocationInRange(cacheEntry.originalResponse.statusCode, NSMakeRange(500, 99))) {
+                                      [self removeEntryInDiskCache:cacheEntry];
+                                      cacheEntry = nil;
+                                  } else {
+                                      // Store the entry in the memory cache for further requests
+                                      [self storeEntryInMemoryCache:cacheEntry];
+                                      [FRZHTTPImageCache.logger frz_logMessage:@"Returning image from disk cache (and propagating to memory cache)" forImageURL:cacheEntry.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
+                                  }
                               }
                           }
                           fetchBlockFinished = YES;
@@ -148,7 +154,7 @@ static FRZImageCacheManager *sharedInstance = nil;
     // If 5xx, there was a server error. Store it in memory cache to avoid
     // excessive requests, but keep the disk cache for if/when the server comes back alive
     else if (NSLocationInRange(response.statusCode, NSMakeRange(500, 99))) {
-        [self storeEntryInDiskCache:cacheEntry];
+        [self storeEntryInMemoryCache:cacheEntry];
     }
 }
 
