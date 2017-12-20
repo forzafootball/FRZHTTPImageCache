@@ -6,13 +6,14 @@
 //  Copyright © 2017 FootballAddicts. All rights reserved.
 //
 
-#import "FRZImageFetchOperation.h"
+#import "FRZHTTPImageCache.h"
 #import "FRZHTTPImageRequestOperation.h"
 #import "FRZImageCacheManager.h"
-#import "FRZHTTPImageCache.h"
 
 @interface FRZImageFetchOperation() {
     NSURL *_URL;
+    BOOL _isExecuting;
+    BOOL _isFinished;
 }
 
 @property (nonatomic, strong) UIImage *image;
@@ -20,6 +21,8 @@
 @end
 
 @implementation FRZImageFetchOperation
+
+#import "AsyncOperationBoilerPlate.h"
 
 - (instancetype)initWithURL:(NSURL *)URL
 {
@@ -31,8 +34,8 @@
 
 - (void)start
 {
-    [super start];
-    if (self.isCancelled) {
+    if ([self isCancelled]) {
+        [self finish];
         return;
     }
 
@@ -42,6 +45,7 @@
         return;
     }
 
+    [self setExecuting:YES];
     [FRZHTTPImageCache.logger frz_logMessage:@"Image fetch operation starting" forImageURL:_URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
 
     // Do we have this object in the cache?

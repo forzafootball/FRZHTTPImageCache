@@ -8,7 +8,10 @@
 
 #import "FRZHTTPImageRequestOperation.h"
 
-@interface FRZHTTPImageRequestOperation()
+@interface FRZHTTPImageRequestOperation() {
+    BOOL _isExecuting;
+    BOOL _isFinished;
+}
 
 @property (nonatomic, strong) NSURL *URL;
 @property (nonatomic, strong) FRZImageCacheEntry *cacheEntry;
@@ -19,6 +22,8 @@
 @end
 
 @implementation FRZHTTPImageRequestOperation
+
+#import "AsyncOperationBoilerPlate.h"
 
 - (nullable instancetype)initWithURL:(nonnull NSURL *)URL cacheEntry:(nullable FRZImageCacheEntry *)cacheEntry;
 {

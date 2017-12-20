@@ -7,7 +7,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "FRZAsynchronousOperation.h"
 
 @import UIKit;
 
@@ -31,7 +30,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface FRZImageFetchOperation : FRZAsynchronousOperation
+@interface FRZImageFetchOperation : NSOperation
 
 - (instancetype)initWithURL:(NSURL *)URL;
 

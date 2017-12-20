@@ -7,10 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "FRZAsynchronousOperation.h"
 #import "FRZImageCacheEntry.h"
 
-@interface FRZHTTPImageRequestOperation : FRZAsynchronousOperation
+@interface FRZHTTPImageRequestOperation : NSOperation
 
 - (nullable instancetype)initWithURL:(nonnull NSURL *)URL cacheEntry:(nullable FRZImageCacheEntry *)cacheEntry;
 

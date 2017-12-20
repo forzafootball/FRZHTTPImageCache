@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "FRZImageCacheEntry.h"
-#import "FRZHTTPImageCacheOptions.h"
+#import "FRZHTTPImageCache.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
