@@ -66,7 +66,7 @@
 
         NSIndexSet *validStatuses = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(200, 99)];
         if (HTTPResponse.statusCode == 304) {
-            _image = _cacheEntry.image;
+            self.image = self.cacheEntry.image;
         } else if ([validStatuses containsIndex:HTTPResponse.statusCode]) {
             CGFloat scale = 1.0;
             NSString *URLString = self.URL.absoluteString;
