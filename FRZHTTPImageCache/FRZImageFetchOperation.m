@@ -23,8 +23,6 @@
 
 @implementation FRZImageFetchOperation
 
-#import "AsyncOperationBoilerPlate.h"
-
 - (instancetype)initWithURL:(NSURL *)URL
 {
     if (self = [super init]) {
@@ -107,6 +105,46 @@
             [FRZHTTPImageCache.logger frz_logMessage:[NSString stringWithFormat:@"The requested URL was found in cache but marked as invalid (%li)", (long)cacheEntry.originalResponse.statusCode] forImageURL:self.URL logLevel:FRZHTTPImageCacheLogLevelWarning];
         }
         [self finish];
+    }
+}
+
+- (BOOL)isAsynchronous
+{
+    return YES;
+}
+
+- (void)setExecuting:(BOOL)executing
+{
+    [self willChangeValueForKey:@"isExecuting"];
+    _isExecuting = executing;
+    [self didChangeValueForKey:@"isExecuting"];
+}
+
+- (void)setFinished:(BOOL)finished
+{
+    [self willChangeValueForKey:@"isFinished"];
+    _isFinished = finished;
+    [self didChangeValueForKey:@"isFinished"];
+}
+
+- (BOOL)isExecuting
+{
+    return _isExecuting;
+}
+
+- (BOOL)isFinished
+{
+    return _isFinished;
+}
+
+- (void)finish
+{
+    if ([self isExecuting]) {
+        [self setExecuting:NO];
+    }
+    
+    if (![self isFinished]) {
+        [self setFinished:YES];
     }
 }
 

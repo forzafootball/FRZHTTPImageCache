@@ -23,8 +23,6 @@
 
 @implementation FRZHTTPImageRequestOperation
 
-#import "AsyncOperationBoilerPlate.h"
-
 - (nullable instancetype)initWithURL:(nonnull NSURL *)URL cacheEntry:(nullable FRZImageCacheEntry *)cacheEntry;
 {
     if (!URL) {
@@ -82,6 +80,46 @@
         [self finish];
     }];
     [networkTask resume];
+}
+
+- (BOOL)isAsynchronous
+{
+    return YES;
+}
+
+- (void)setExecuting:(BOOL)executing
+{
+    [self willChangeValueForKey:@"isExecuting"];
+    _isExecuting = executing;
+    [self didChangeValueForKey:@"isExecuting"];
+}
+
+- (void)setFinished:(BOOL)finished
+{
+    [self willChangeValueForKey:@"isFinished"];
+    _isFinished = finished;
+    [self didChangeValueForKey:@"isFinished"];
+}
+
+- (BOOL)isExecuting
+{
+    return _isExecuting;
+}
+
+- (BOOL)isFinished
+{
+    return _isFinished;
+}
+
+- (void)finish
+{
+    if ([self isExecuting]) {
+        [self setExecuting:NO];
+    }
+    
+    if (![self isFinished]) {
+        [self setFinished:YES];
+    }
 }
 
 #pragma mark - NSURLSession

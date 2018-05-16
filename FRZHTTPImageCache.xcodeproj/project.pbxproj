@@ -96,7 +96,6 @@
 		5D5162B01F42FA4D000670DC /* FRZHTTPImageCacheOptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FRZHTTPImageCacheOptions.h; sourceTree = "<group>"; };
 		5D5162B11F42FA4D000670DC /* FRZHTTPImageCacheOptions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FRZHTTPImageCacheOptions.m; sourceTree = "<group>"; };
 		5D5162B61F42FABD000670DC /* FRZHTTPImageCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FRZHTTPImageCache.m; sourceTree = "<group>"; };
-		5D85B3B31FEA95FF00C67014 /* AsyncOperationBoilerPlate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AsyncOperationBoilerPlate.h; sourceTree = "<group>"; };
 		5D8B93031FEA8F550039AB3D /* libFRZHTTPImageCache.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libFRZHTTPImageCache.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		5DBE72841EC0763F00320F25 /* FRZHTTPImageCacheLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FRZHTTPImageCacheLogging.h; sourceTree = "<group>"; };
 		5DBE72851EC0763F00320F25 /* FRZHTTPImageCacheLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FRZHTTPImageCacheLogging.m; sourceTree = "<group>"; };
@@ -158,7 +157,6 @@
 				5DBE728B1EC0763F00320F25 /* FRZImageCacheManager.m */,
 				5DBE728D1EC0763F00320F25 /* FRZImageFetchOperation.m */,
 				5DBE728F1EC0763F00320F25 /* UIImageView+FRZHTTPImageCache.m */,
-				5D85B3B31FEA95FF00C67014 /* AsyncOperationBoilerPlate.h */,
 			);
 			name = Library;
 			sourceTree = "<group>";
