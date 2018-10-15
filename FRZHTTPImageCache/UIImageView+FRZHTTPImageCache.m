@@ -8,6 +8,7 @@
 
 #import "UIImageView+FRZHTTPImageCache.h"
 #import "FRZImageFetchOperation.h"
+#import "FRZImageCacheManager.h"
 #import <objc/runtime.h>
 
 @interface UIImageView (FRZHTTPImageCacheInternal)
@@ -38,7 +39,12 @@
         }
         return;
     }
-
+    
+    FRZImageCacheEntry *memoryCacheEntry = [[FRZImageCacheManager sharedInstance] memoryCachedImageForURL:URL];
+    if (memoryCacheEntry.image != nil) {
+        self.image = memoryCacheEntry.image;
+    }
+    
     FRZImageFetchOperation *fetchOperation = [[FRZImageFetchOperation alloc] initWithURL:URL];
     self.currentFetchOperation = fetchOperation;
     fetchOperation.delegate = self;

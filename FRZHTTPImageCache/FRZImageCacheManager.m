@@ -85,12 +85,17 @@ static FRZImageCacheManager *sharedInstance = nil;
 
 - (nullable FRZImageCacheEntry *)fetchImageForURL:(NSURL *)URL
 {
-    FRZImageCacheEntry *cachedImage = [self.memoryCache objectForKey:[self keyForURL:URL]];
+    FRZImageCacheEntry *cachedImage = [self memoryCachedImageForURL:URL];
     if (cachedImage) {
         [FRZHTTPImageCache.logger frz_logMessage:@"Returning image from memory cache" forImageURL:cachedImage.originalResponse.URL logLevel:FRZHTTPImageCacheLogLevelVerbose];
         return cachedImage;
     }
     return [self diskCachedImageForURL:URL];
+}
+
+- (nullable FRZImageCacheEntry *)memoryCachedImageForURL:(NSURL *)URL
+{
+    return [self.memoryCache objectForKey:[self keyForURL:URL]];
 }
 
 - (FRZImageCacheEntry *)diskCachedImageForURL:(NSURL *)URL

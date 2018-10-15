@@ -22,6 +22,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable FRZImageCacheEntry *)fetchImageForURL:(NSURL *)URL;
 - (void)cacheImage:(nullable UIImage *)image forURLResponse:(NSHTTPURLResponse *)response;
 
+- (nullable FRZImageCacheEntry *)memoryCachedImageForURL:(NSURL *)URL;
+
 @end
 
 NS_ASSUME_NONNULL_END
