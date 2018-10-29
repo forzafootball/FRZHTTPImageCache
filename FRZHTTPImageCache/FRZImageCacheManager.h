@@ -22,7 +22,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable FRZImageCacheEntry *)fetchImageForURL:(NSURL *)URL;
 - (void)cacheImage:(nullable UIImage *)image forURLResponse:(NSHTTPURLResponse *)response;
 
+// these calls are blocking, for most usecases it's prefered to use the fetch operation
 - (nullable FRZImageCacheEntry *)memoryCachedImageForURL:(NSURL *)URL;
+- (nullable FRZImageCacheEntry *)diskCachedImageForURL:(NSURL *)URL timeout:(NSTimeInterval)timeout;
 
 @end
 

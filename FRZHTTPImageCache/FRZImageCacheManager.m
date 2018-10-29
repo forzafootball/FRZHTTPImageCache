@@ -98,7 +98,12 @@ static FRZImageCacheManager *sharedInstance = nil;
     return [self.memoryCache objectForKey:[self keyForURL:URL]];
 }
 
-- (FRZImageCacheEntry *)diskCachedImageForURL:(NSURL *)URL
+- (nullable FRZImageCacheEntry *)diskCachedImageForURL:(NSURL *)URL
+{
+    return [self diskCachedImageForURL:URL timeout:1.0];
+}
+
+- (nullable FRZImageCacheEntry *)diskCachedImageForURL:(NSURL *)URL timeout:(NSTimeInterval)timeout
 {
     dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
     __block FRZImageCacheEntry *cacheEntry = nil;
@@ -126,10 +131,10 @@ static FRZImageCacheManager *sharedInstance = nil;
                           fetchBlockFinished = YES;
                           dispatch_semaphore_signal(semaphore);
                       } onQueue:self.diskCacheQueue];
-    dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC));
+    dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, timeout * NSEC_PER_SEC));
 
     if (!fetchBlockFinished) {
-        [FRZHTTPImageCache.logger frz_logMessage:@"Aborted image fetch from disk cache because it took more than 1 second to retrieve." forImageURL:URL logLevel:FRZHTTPImageCacheLogLevelError];
+        [FRZHTTPImageCache.logger frz_logMessage:@"Aborted image fetch from disk cache because it took too long to retrieve." forImageURL:URL logLevel:FRZHTTPImageCacheLogLevelError];
     }
 
     return cacheEntry;
