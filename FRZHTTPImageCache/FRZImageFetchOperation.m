@@ -184,6 +184,7 @@
     dispatch_once(&onceToken, ^{
         imageRequestQueue = [NSOperationQueue new];
         imageRequestQueue.qualityOfService = NSQualityOfServiceUserInitiated;
+        imageRequestQueue.maxConcurrentOperationCount = 4;
     });
     return imageRequestQueue;
 }
@@ -195,6 +196,7 @@
     dispatch_once(&onceToken, ^{
         imageFetchQueue = [NSOperationQueue new];
         imageFetchQueue.qualityOfService = NSQualityOfServiceUserInteractive;
+        imageFetchQueue.maxConcurrentOperationCount = 4;
     });
     return imageFetchQueue;
 }
